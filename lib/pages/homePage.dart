@@ -25,13 +25,18 @@ class _MyHomePageState extends State<MyHomePage> {
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const ProductoPage(title: "Producto",)),
-                  );
+                  Navigator.pushNamed(context, '/producto');
                 },
                 child: const Text('Menú Producto'),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/pedido');
+                },
+                child: const Text('Ventas'),
               ),
             ),
           ],

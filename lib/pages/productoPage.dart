@@ -1,7 +1,12 @@
+import 'dart:html';
+
+import 'package:appventa/models/categoria.dart';
+import 'package:appventa/service/categoriaService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:appventa/models/producto.dart';
 import 'package:appventa/service/productoService.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 
 class ProductoPage extends StatefulWidget {
   const ProductoPage({super.key, required this.title});
@@ -15,22 +20,20 @@ class ProductoPage extends StatefulWidget {
 class _ProductoPageState extends State<ProductoPage> {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: DefaultTabController(
-        length: 2,
-        child: _crearAppBar(widget.title),
-      ),
+    return DefaultTabController(
+      length: 2,
+      child: _crearAppBar(widget.title),
     );
   }
 
   _crearAppBar(String titulo) {
     return Scaffold(
       appBar: AppBar(
-        bottom: const TabBar(
-          tabs: [Tab(icon: Icon(Icons.list)), Tab(icon: Icon(Icons.person))]
-        ),
-        title: Text(titulo)
-      ),
+          bottom: const TabBar(tabs: [
+            Tab(icon: Icon(Icons.list)),
+            Tab(icon: Icon(Icons.person))
+          ]),
+          title: Text(titulo)),
       body: const TabBarView(
         children: [
           ListaProducto(),
@@ -52,7 +55,16 @@ class ListaProducto extends StatefulWidget {
 }
 
 class ListaProductoState extends State<ListaProducto> {
-  // final ProductoService = ProductoService();
+  final productoService = ProductoService();
+
+  late Future<List<Producto>> futureProductos;
+
+  @override
+  void initState() {
+    super.initState();
+    futureProductos = productoService.obtenerProductos();
+  }
+
   @override
   Widget build(BuildContext context) {
     return _crearListado();
@@ -60,48 +72,48 @@ class ListaProductoState extends State<ListaProducto> {
 
   _crearListado() {
     return FutureBuilder(
-      future: ProductoService.obtenerProductos(),
+      future: futureProductos,
       builder: (BuildContext context, AsyncSnapshot<List<Producto>> snapshot) {
         // WHILE THE CALL IS BEING MADE AKA LOADING
-        if (ConnectionState.active != null && !snapshot.hasData) {
+        if (!snapshot.hasData) {
           return Center(child: Text('Loading'));
         }
 
         // WHEN THE CALL IS DONE BUT HAPPENS TO HAVE AN ERROR
-        if (ConnectionState.done != null && snapshot.hasError) {
+        if (snapshot.hasError) {
           return Center(child: Text("Error"));
         }
 
-        final Productos = snapshot.data;
+        final productos = snapshot.data;
         return ListView.builder(
-          itemCount: Productos?.length,
+          itemCount: productos?.length,
           itemBuilder: (context, index) {
-            _crearItem(context, Productos![index]);
+            return _crearItem(context, productos![index]);
           },
         );
       },
     );
   }
 
-  _crearItem(BuildContext context, Producto Producto) {
+  _crearItem(BuildContext context, Producto producto) {
     return Dismissible(
       key: UniqueKey(),
       background: Container(
         color: Colors.red,
-        child: Icon(Icons.delete),
+        child: const Icon(Icons.delete),
       ),
       child: ListTile(
-        title: Text('${Producto.nombreProducto}'),
-        subtitle: Text(Producto.nombreProducto),
+        title: Text(producto.nombreProducto),
+        subtitle: Text(producto.nombreProducto),
         leading: CircleAvatar(
           backgroundColor: Theme.of(context).primaryColor,
-          child: Text(Producto.nombreProducto[0]),
+          child: Text(""),
         ),
         onTap: () =>
-            Navigator.pushNamed(context, 'producto', arguments: Producto),
+            Navigator.pushNamed(context, '/producto', arguments: producto),
       ),
       onDismissed: (direccion) {
-        print(Producto.idProducto);
+        print(producto.idProducto);
       },
     );
   }
@@ -120,9 +132,18 @@ class FormularioProducto extends StatefulWidget {
 
 class FormularioProductoState extends State<FormularioProducto> {
   final _formKey = GlobalKey<FormState>();
-  // final ProductoService =  ProductoService();
-  Producto producto =
-      Producto(idProducto: 0, nombreProducto: '', precio: 0, stock: 0,idCategoria:0 ,esActivo: false);
+  final productoService = ProductoService();
+  final categoriaService = CategoriaService();
+
+  Producto producto = Producto(
+      idProducto: 0,
+      nombreProducto: '',
+      precio: 0.0,
+      stock: 0,
+      idCategoria: 0,
+      esActivo: false);
+  Categoria categoria =
+      Categoria(idCategoria: 0, nombreCategoria: '', esActivo: true);
 
   @override
   Widget build(BuildContext context) {
@@ -133,21 +154,28 @@ class FormularioProductoState extends State<FormularioProducto> {
       producto = ProductoData;
     }
 
-    return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              _agregarImagen(),
-              _crearNombre(),
-              _crearPrecio(),
-              _crearBotonRegistrar()
-            ],
-          ),
-        ));
+    return SizedBox(
+      height: MediaQuery.of(context).size.height,
+      child: SingleChildScrollView(
+        child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 16),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  //_agregarImagen(),
+                  _crearNombre(),
+                  _crearPrecio(),
+                  _crearStock(),
+                  _crearCategoria(),
+                  _crearBotonRegistrar()
+                ],
+              ),
+            )),
+      ),
+    );
   }
 
   _agregarImagen() {
@@ -185,17 +213,22 @@ class FormularioProductoState extends State<FormularioProducto> {
       child: TextFormField(
         decoration: const InputDecoration(
           border: UnderlineInputBorder(),
-          labelText: 'Apellidos',
+          labelText: 'Precio',
         ),
+        keyboardType: TextInputType.number,
+        inputFormatters: <TextInputFormatter>[
+          FilteringTextInputFormatter.digitsOnly
+        ],
         validator: (value) {
           if (value == null || value == "") {
             return 'no válido';
           }
-          if (value.contains("@")) {
-            return "Apellidos no válido";
+          double valor = double.parse(value);
+          if (valor < 1) {
+            return "Precio no válido";
           }
         },
-        onSaved: (String? value) => producto.precio = value! as double,
+        onSaved: (String? value) => producto.precio = double.parse(value!),
       ),
     );
   }
@@ -206,7 +239,7 @@ class FormularioProductoState extends State<FormularioProducto> {
       child: TextFormField(
         decoration: const InputDecoration(
           border: UnderlineInputBorder(),
-          labelText: 'Edad',
+          labelText: 'Stock',
         ),
         keyboardType: TextInputType.number,
         inputFormatters: <TextInputFormatter>[
@@ -217,37 +250,74 @@ class FormularioProductoState extends State<FormularioProducto> {
             return 'no válido';
           }
           int valor = int.parse(value);
-          if (valor > 100 || valor < 1) {
-            return "Edad no válido";
+          if (valor < 1) {
+            return "Stock no válido";
           }
         },
         onSaved: (String? value) => producto.stock = int.parse(value!),
       ),
     );
   }
+
+  void itemSelectionChanged(Categoria? _categoria) {
+    categoria = _categoria!;
+  }
+
   _crearCategoria() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-      child: TextFormField(
-        decoration: const InputDecoration(
-          border: UnderlineInputBorder(),
-          labelText: 'Edad',
-        ),
-        keyboardType: TextInputType.number,
-        inputFormatters: <TextInputFormatter>[
-          FilteringTextInputFormatter.digitsOnly
-        ],
-        validator: (value) {
-          if (value == null || value == "") {
-            return 'no válido';
-          }
-          int valor = int.parse(value);
-          if (valor > 100 || valor < 1) {
-            return "Edad no válido";
-          }
-        },
-        onSaved: (String? value) => producto.idCategoria = int.parse(value!),
-      ),
+    return FutureBuilder(
+      future: categoriaService.obtenerCategorias(),
+      builder: (BuildContext context, AsyncSnapshot<List<Categoria>> snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: Text('Loading'));
+        }
+
+        if (snapshot.hasError) {
+          return const Center(child: Text("Error"));
+        }
+
+        final categorias = snapshot.data ?? [];
+
+        return DropdownSearch<Categoria>(
+          items: categorias,
+          itemAsString: (Categoria categoria) => categoria.nombreCategoria,
+          popupProps: PopupPropsMultiSelection.modalBottomSheet(
+            itemBuilder: _genererarItemPopUp,
+            showSearchBox: true,
+          ),
+          onChanged: itemSelectionChanged,
+          dropdownDecoratorProps: const DropDownDecoratorProps(
+            dropdownSearchDecoration: InputDecoration(
+              labelText: "Categoria",
+              hintText: "::Selecciona Categoria::",
+            ),
+          ),
+          onSaved: (Categoria? categoria) =>
+              producto.idCategoria = categoria!.idCategoria,
+          validator: (Categoria? i) {
+            if (i == null) {
+              return 'Categoria no válida';
+            } 
+          },
+        );
+      },
+    );
+  }
+
+  Widget _genererarItemPopUp(
+      BuildContext context, Categoria item, bool isSelected) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 8),
+      decoration: !isSelected
+          ? null
+          : BoxDecoration(
+              border: Border.all(color: Theme.of(context).primaryColor),
+              borderRadius: BorderRadius.circular(5),
+              color: Colors.white,
+            ),
+      child: ListTile(
+          selected: isSelected,
+          title: Text(item.nombreCategoria),
+          subtitle: Text(item.nombreCategoria.toString())),
     );
   }
 
@@ -259,13 +329,14 @@ class FormularioProductoState extends State<FormularioProducto> {
           if (!_formKey.currentState!.validate()) {
             return;
           }
+
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Registrando')),
           );
 
           _formKey.currentState!.save();
 
-          ProductoService.registrarProducto(producto);
+          productoService.registrarProducto(producto);
 
           _formKey.currentState!.reset();
         },

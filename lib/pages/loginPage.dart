@@ -1,4 +1,5 @@
 import 'package:appventa/pages/homePage.dart';
+import 'package:appventa/validator/noSpaceFormatter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:appventa/models/usuario.dart';
@@ -54,6 +55,7 @@ class FormularioLoginState extends State<FormularioLogin> {
   final _formKey = GlobalKey<FormState>();
   // final LoginService =  LoginService();
   Usuario usuario = Usuario.onlyLogin(numeroDocumento: '0', clave: '');
+  bool passwordVisible = true;
 
   @override
   Widget build(BuildContext context) {
@@ -86,6 +88,9 @@ class FormularioLoginState extends State<FormularioLogin> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
       child: TextFormField(
+        inputFormatters: [
+          NoSpaceFormatter(),
+        ],
         decoration: const InputDecoration(
           border: UnderlineInputBorder(),
           labelText: 'Usuario',
@@ -105,9 +110,24 @@ class FormularioLoginState extends State<FormularioLogin> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
       child: TextFormField(
-        decoration: const InputDecoration(
+        inputFormatters: [
+          NoSpaceFormatter(),
+        ],
+        obscureText: passwordVisible,
+        decoration: InputDecoration(
           border: UnderlineInputBorder(),
           labelText: 'Clave',
+          suffixIcon: IconButton(
+              icon: Icon(
+                  passwordVisible ? Icons.visibility : Icons.visibility_off),
+              onPressed: () => setState(
+                    () {
+                      passwordVisible = !passwordVisible;
+                    },
+                  )
+          ),
+          alignLabelWithHint: false,
+          filled: true,
         ),
         validator: (value) {
           if (value == null || value == "") {
@@ -115,6 +135,7 @@ class FormularioLoginState extends State<FormularioLogin> {
           }
           value = value.trim();
         },
+        keyboardType: TextInputType.visiblePassword,
         onSaved: (String? value) => usuario.clave = value!,
       ),
     );
@@ -136,14 +157,14 @@ class FormularioLoginState extends State<FormularioLogin> {
 
           UsuarioService.iniciarSesion(usuario);
 
-          // Navigator.pushReplacementNamed(context, '/route');
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const MyHomePage(
-                      title: "Producto",
-                    )),
-          );
+          Navigator.pushReplacementNamed(context, '/home');
+          // Navigator.push(
+          //   context,
+          //   MaterialPageRoute(
+          //       builder: (context) => const MyHomePage(
+          //             title: "Producto",
+          //           )),
+          // );
 
           _formKey.currentState!.reset();
         },
