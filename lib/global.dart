@@ -1,3 +1,3 @@
 library globals;
 
-String uriApiVentas = "http://192.168.31.53:8090";
+String uriApiVentas = "http://10.70.124.171:8090";

@@ -61,7 +61,7 @@ class FormularioVentaState extends State<FormularioVenta> {
 
   _crearListado() {
     return FutureBuilder(
-      future: productoService.obtenerProductos(),
+      future: productoService.obtenerProductos(0),
       builder: (BuildContext context, AsyncSnapshot<List<Producto>> snapshot) {
         // WHILE THE CALL IS BEING MADE AKA LOADING
         if (!snapshot.hasData) {

@@ -15,13 +15,13 @@ class ProductoService {
     return true;
   }
 
-  Future<List<Producto>> obtenerProductos() async {
+  Future<List<Producto>> obtenerProductos(int idCategoria) async {
    
 
     List<Producto> productos=[];
 
     try {
-      var url = Uri.parse("${uriApiVentas}/Producto/obtenerProductos");
+      var url = Uri.parse("${uriApiVentas}/Producto/obtenerProductos?idCategoria=${idCategoria}");
 
       final response =
           await http.get(url);
@@ -32,7 +32,6 @@ class ProductoService {
       var decodeData= jsonDecode(response.body) as List;
       decodeData.forEach((element) {
         final producto=Producto.fromJson(element);
-        print(producto);
         productos.add(producto);
       });
       // productos=decodeData.map((e) => Producto.fromJson(e)).toList();

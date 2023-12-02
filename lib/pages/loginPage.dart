@@ -149,24 +149,15 @@ class FormularioLoginState extends State<FormularioLogin> {
           if (!_formKey.currentState!.validate()) {
             return;
           }
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Inicio Sesión')),
-          );
-
+          
           _formKey.currentState!.save();
-
           UsuarioService.iniciarSesion(usuario);
-
-          Navigator.pushReplacementNamed(context, '/home');
-          // Navigator.push(
-          //   context,
-          //   MaterialPageRoute(
-          //       builder: (context) => const MyHomePage(
-          //             title: "Producto",
-          //           )),
-          // );
-
+          Navigator.pushReplacementNamed(context, '/home');      
           _formKey.currentState!.reset();
+          // ScaffoldMessenger.of(context).showSnackBar(
+          //   const SnackBar(content: Text('Inicio Sesión')),
+          // );
+          
         },
         child: const Text('Iniciar Sesión'),
       ),

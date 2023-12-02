@@ -1,4 +1,5 @@
 import 'package:appventa/pages/loginPage.dart';
+import 'package:appventa/pages/productoFormularioPage.dart';
 import 'package:appventa/pages/productoPage.dart';
 import 'package:appventa/pages/ventaPage.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +25,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => const LoginPage(title: 'Login'),
         '/home': (context) => const MyHomePage(title: 'Home'),
         '/producto': (context) => const ProductoPage(title: 'Producto'),
+        '/productoFormulario': (context) => const ProductoFormularioPage(title: 'Producto Formulario'),
         '/venta': (context) => const VentaPage(title: 'Venta'),
         '/ventaNuevo': (context) => const VentaPage(title: 'Venta'),
       },
