@@ -1,3 +1,4 @@
+import 'package:appventa/global.dart';
 import 'package:appventa/pages/homePage.dart';
 import 'package:appventa/validator/noSpaceFormatter.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,13 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return _crearMenu('titulo');
@@ -55,6 +63,7 @@ class FormularioLoginState extends State<FormularioLogin> {
   final _formKey = GlobalKey<FormState>();
   // final LoginService =  LoginService();
   Usuario usuario = Usuario.onlyLogin(numeroDocumento: '0', clave: '');
+  UsuarioService usuarioService = UsuarioService();
   bool passwordVisible = true;
 
   @override
@@ -124,8 +133,7 @@ class FormularioLoginState extends State<FormularioLogin> {
                     () {
                       passwordVisible = !passwordVisible;
                     },
-                  )
-          ),
+                  )),
           alignLabelWithHint: false,
           filled: true,
         ),
@@ -145,19 +153,24 @@ class FormularioLoginState extends State<FormularioLogin> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
       child: ElevatedButton(
-        onPressed: () {
+        onPressed: () async {
           if (!_formKey.currentState!.validate()) {
             return;
           }
-          
+
           _formKey.currentState!.save();
-          UsuarioService.iniciarSesion(usuario);
-          Navigator.pushReplacementNamed(context, '/home');      
-          _formKey.currentState!.reset();
-          // ScaffoldMessenger.of(context).showSnackBar(
-          //   const SnackBar(content: Text('Inicio Sesión')),
-          // );
-          
+
+          Usuario usuarioResponse = await usuarioService.iniciarSesion(usuario);
+
+          if (usuarioResponse.idUsuario == 0) {
+            // ignore: use_build_context_synchronously
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Usuario o clave incorrecto')),
+            );
+            return;
+          }
+          usuarioSesion=usuarioResponse;
+          Navigator.pushReplacementNamed(context, '/home');
         },
         child: const Text('Iniciar Sesión'),
       ),

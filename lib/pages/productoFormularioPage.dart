@@ -1,5 +1,6 @@
 import 'dart:html';
 
+import 'package:appventa/global.dart';
 import 'package:appventa/models/categoria.dart';
 import 'package:appventa/service/categoriaService.dart';
 import 'package:flutter/material.dart';
@@ -9,32 +10,33 @@ import 'package:appventa/service/productoService.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 
 class ProductoFormularioPage extends StatefulWidget {
-  const ProductoFormularioPage({super.key, required this.title});
+  const ProductoFormularioPage(
+      {super.key, required this.title, required this.idProducto});
 
   final String title;
+  final int idProducto;
 
   @override
   State<ProductoFormularioPage> createState() => _ProductoFormularioPageState();
 }
 
 class _ProductoFormularioPageState extends State<ProductoFormularioPage> {
-
   @override
   Widget build(BuildContext context) {
     return _crearMenu("Producto");
   }
-   _crearMenu(String titulo) {
+
+  _crearMenu(String titulo) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body: const Center(
-        child: FormularioProducto(),
+      body: Center(
+        child: FormularioProducto(idProducto: widget.idProducto),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
-
 }
 
 // Create a Form widget.
@@ -63,36 +65,63 @@ class FormularioProductoState extends State<FormularioProducto> {
   Categoria categoria =
       Categoria(idCategoria: 0, nombreCategoria: '', esActivo: true);
 
+  int _idProducto = 0;
+  late Future<Producto> futureProducto;
+
+  @override
+  void initState() {
+    super.initState();
+    _idProducto = widget.idProducto!;
+     _obtenerProducto(_idProducto);
+  }
+
+  _obtenerProducto(int idProducto) {
+    setState(() {
+      futureProducto = productoService.obtenerProducto(idProducto);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final Producto? ProductoData =
-        ModalRoute.of(context)!.settings.arguments as Producto?;
+    return FutureBuilder(
+      future: futureProducto,
+      builder: (BuildContext context, AsyncSnapshot<Producto> snapshot) {
+        // WHILE THE CALL IS BEING MADE AKA LOADING
+        if (!snapshot.hasData) {
+          return Center(child: Text('Loading'));
+        }
 
-    if (ProductoData != null) {
-      producto = ProductoData;
-    }
+        // WHEN THE CALL IS DONE BUT HAPPENS TO HAVE AN ERROR
+        if (snapshot.hasError) {
+          return Center(child: Text("Error"));
+        }
 
-    return SizedBox(
-      height: MediaQuery.of(context).size.height,
-      child: SingleChildScrollView(
-        child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 16),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  //_agregarImagen(),
-                  _crearNombre(),
-                  _crearPrecio(),
-                  _crearStock(),
-                  _crearCategoria(),
-                  _crearBotonRegistrar()
-                ],
-              ),
-            )),
-      ),
+        producto = snapshot.data!;
+
+        return SizedBox(
+          height: MediaQuery.of(context).size.height,
+          child: SingleChildScrollView(
+            child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 100, vertical: 16),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      //_agregarImagen(),
+                      _crearNombre(),
+                      _crearPrecio(),
+                      _crearStock(),
+                      _crearCategoria(),
+                      _crearBotonRegistrar()
+                    ],
+                  ),
+                )),
+          ),
+        );
+      },
     );
   }
 
@@ -120,6 +149,7 @@ class FormularioProductoState extends State<FormularioProducto> {
             return "Nombre no válido";
           }
         },
+        initialValue: producto.nombreProducto,
         onSaved: (String? value) => producto.nombreProducto = value!,
       ),
     );
@@ -146,6 +176,7 @@ class FormularioProductoState extends State<FormularioProducto> {
             return "Precio no válido";
           }
         },
+        initialValue: producto.precio.toString(),
         onSaved: (String? value) => producto.precio = double.parse(value!),
       ),
     );
@@ -172,6 +203,7 @@ class FormularioProductoState extends State<FormularioProducto> {
             return "Stock no válido";
           }
         },
+        initialValue: producto.stock.toString(),
         onSaved: (String? value) => producto.stock = int.parse(value!),
       ),
     );
@@ -195,6 +227,10 @@ class FormularioProductoState extends State<FormularioProducto> {
 
         final categorias = snapshot.data ?? [];
 
+        if (_idProducto != 0)
+          categoria = categorias
+              .firstWhere((x) => x.idCategoria == producto.idCategoria);
+
         return DropdownSearch<Categoria>(
           items: categorias,
           itemAsString: (Categoria categoria) => categoria.nombreCategoria,
@@ -209,10 +245,14 @@ class FormularioProductoState extends State<FormularioProducto> {
               hintText: "::Selecciona Categoria::",
             ),
           ),
+          selectedItem: categoria,
           onSaved: (Categoria? categoria) =>
               producto.idCategoria = categoria!.idCategoria,
           validator: (Categoria? i) {
             if (i == null) {
+              return 'Categoria no válida';
+            }
+            if (i.idCategoria == 0) {
               return 'Categoria no válida';
             }
           },
@@ -243,24 +283,39 @@ class FormularioProductoState extends State<FormularioProducto> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
       child: ElevatedButton(
-        onPressed: () {
+        onPressed: () async {
           if (!_formKey.currentState!.validate()) {
             return;
           }
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Registrando')),
-          );
-
           _formKey.currentState!.save();
 
-          productoService.registrarProducto(producto);
+          producto.idUsuarioRegistro = usuarioSesion.idUsuario;
+          producto.idUsuarioActualizacion = usuarioSesion.idUsuario;
+
+          bool resp = false;
+          if (_idProducto == 0) {
+            resp = await productoService.registrarProducto(producto);
+          } else {
+            resp = await productoService.actualizarProducto(producto);
+          }
+
+          if (!resp) {
+            // ignore: use_build_context_synchronously
+            ScaffoldMessenger.of(context).showSnackBar(
+               SnackBar(content: Text((_idProducto==0?'Error al registrar':'Error al actualizar'))),
+            );
+            return;
+          }
 
           _formKey.currentState!.reset();
 
+          // ignore: use_build_context_synchronously
           Navigator.pop(context);
         },
-        child: const Text('Registrar'),
+        child: _idProducto == 0
+            ? const Text('Registrar')
+            : const Text('Actualizar'),
       ),
     );
   }

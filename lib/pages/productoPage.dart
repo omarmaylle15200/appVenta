@@ -9,8 +9,10 @@ import 'package:appventa/models/producto.dart';
 import 'package:appventa/service/productoService.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 
-typedef MyBuilder = void Function(BuildContext context, void Function() methodFromChild);
+typedef MyBuilder = void Function(
+    BuildContext context, void Function() methodFromChild);
 
+GlobalKey<ListaProductoState> globalKey = GlobalKey();
 
 class ProductoPage extends StatefulWidget {
   const ProductoPage({super.key, required this.title});
@@ -31,13 +33,11 @@ class _ProductoPageState extends State<ProductoPage> {
   void initState() {
     super.initState();
     futureCategorias = categoriaService.obtenerCategorias();
-    _idCategoria = 0;
   }
 
   _seleccionarCategoria(int idCategoria) {
-    setState(() {
-      _idCategoria = idCategoria;
-    });
+    _idCategoria = idCategoria;
+    globalKey.currentState?._obtenerProductos(_idCategoria);
   }
 
   @override
@@ -56,8 +56,12 @@ class _ProductoPageState extends State<ProductoPage> {
         }
 
         final categorias = snapshot.data;
+        categorias?.insert(
+            0,
+            Categoria(
+                idCategoria: 0, nombreCategoria: "Todos", esActivo: true));
 
-        return _crearAppBar(categorias!, "");
+        return _crearAppBar(categorias!, "Productos");
       },
     );
   }
@@ -78,7 +82,7 @@ class _ProductoPageState extends State<ProductoPage> {
               ),
             ),
             Expanded(
-              child: ListaProducto(idCategoria: _idCategoria),
+              child: ListaProducto(key: globalKey, idCategoria: _idCategoria),
             )
           ],
         ),
@@ -90,7 +94,8 @@ class _ProductoPageState extends State<ProductoPage> {
           onPressed: () => Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => const ProductoFormularioPage(title: "")),
+                builder: (context) => const ProductoFormularioPage(
+                    title: "Producto Nuevo", idProducto: 0)),
           ),
           tooltip: 'Nuevo',
           child: const Icon(Icons.add),
@@ -104,8 +109,9 @@ class _ProductoPageState extends State<ProductoPage> {
       padding: EdgeInsets.all(1),
       child: TextButton(
         style: ButtonStyle(
-            foregroundColor: MaterialStateProperty.all<Color>(Colors.blue),
-            backgroundColor: MaterialStateProperty.all<Color>(Colors.yellow)),
+            foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
+            backgroundColor:
+                MaterialStateProperty.all<Color>(Colors.amber.shade500)),
         onPressed: () => _seleccionarCategoria(categoria.idCategoria),
         child: Text(categoria.nombreCategoria),
       ),
@@ -115,8 +121,8 @@ class _ProductoPageState extends State<ProductoPage> {
 
 // Create a List widget.
 class ListaProducto extends StatefulWidget {
-  ListaProducto({super.key,  required this.idCategoria});
-  int idCategoria;
+  ListaProducto({super.key, required this.idCategoria});
+  int? idCategoria;
 
   @override
   ListaProductoState createState() {
@@ -128,22 +134,26 @@ class ListaProductoState extends State<ListaProducto> {
   final productoService = ProductoService();
 
   late Future<List<Producto>> futureProductos;
+  int idCategoria = 0;
 
   @override
   void initState() {
     super.initState();
-    _obtenerProductos();
+    idCategoria = widget.idCategoria ?? 0;
+    _obtenerProductos(idCategoria);
   }
 
-  _obtenerProductos() {
+  _obtenerProductos(int idCategoria) {
     setState(() {
-      futureProductos = productoService.obtenerProductos(widget.idCategoria!);
+      futureProductos = productoService.obtenerProductos(idCategoria);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return _crearListado();
+    return StatefulBuilder(builder: (context, setState) {
+      return _crearListado();
+    });
   }
 
   _crearListado() {
@@ -174,10 +184,8 @@ class ListaProductoState extends State<ListaProducto> {
   _crearItem(BuildContext context, Producto producto) {
     return Dismissible(
       key: UniqueKey(),
-      background: Container(
-        color: Colors.red,
-        child: const Icon(Icons.delete),
-      ),
+      background: slideLeftBackground(),
+      secondaryBackground: slideRightBackground(),
       child: ListTile(
         title: Text(producto.nombreProducto),
         subtitle: Text(producto.nombreProducto),
@@ -188,12 +196,17 @@ class ListaProductoState extends State<ListaProducto> {
         onTap: () => print(producto),
       ),
       confirmDismiss: (direccion) {
-        return _crearAlertConfirmacion(direccion);
+        if (direccion == DismissDirection.startToEnd) {
+          return _crearAlertConfirmacionEliminar(direccion);
+        } else {
+          return _crearAlertConfirmacionEditar(direccion, producto);
+        }
       },
     );
   }
 
-  Future<bool> _crearAlertConfirmacion(DismissDirection direction) async {
+  Future<bool> _crearAlertConfirmacionEliminar(
+      DismissDirection direction) async {
     return await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -211,6 +224,96 @@ class ListaProductoState extends State<ListaProducto> {
           ],
         );
       },
+    );
+  }
+
+  Future<bool> _crearAlertConfirmacionEditar(
+      DismissDirection direction, Producto producto) async {
+    return await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Editar"),
+          content: const Text("¿Estás seguro de que deseas editar?"),
+          actions: <Widget>[
+            TextButton(
+                onPressed: () => {
+                      Navigator.of(context).pop(false),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => ProductoFormularioPage(
+                                title: "Producto Editar",
+                                idProducto: producto.idProducto)),
+                      ).then((value) =>
+                          setState(() => _obtenerProductos(idCategoria)))
+                    },
+                child: const Text("Editar")),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text("Cancelar"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget slideRightBackground() {
+    return Container(
+      color: Colors.green,
+      child: Align(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            SizedBox(
+              width: 20,
+            ),
+            Icon(
+              Icons.edit,
+              color: Colors.white,
+            ),
+            Text(
+              "Editar",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+              textAlign: TextAlign.left,
+            ),
+          ],
+        ),
+        alignment: Alignment.centerLeft,
+      ),
+    );
+  }
+
+  Widget slideLeftBackground() {
+    return Container(
+      color: Colors.red,
+      child: Align(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            const Icon(
+              Icons.delete,
+              color: Colors.white,
+            ),
+            const Text(
+              "Eliminar",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+              textAlign: TextAlign.right,
+            ),
+            SizedBox(
+              width: 20,
+            ),
+          ],
+        ),
+        alignment: Alignment.centerRight,
+      ),
     );
   }
 }

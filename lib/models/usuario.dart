@@ -48,7 +48,7 @@ class Usuario {
 
   @override
   String toString() {
-    return 'Usuario{idUsuario: $idUsuario, nombreUsuario: $nombre}';
+    return 'Usuario{idUsuario: $idUsuario, nombreUsuario: $nombre, numeroDocumento: $numeroDocumento, clave: $clave}';
   }
 
   factory Usuario.fromJson(Map<String, dynamic> json) => Usuario(

@@ -10,6 +10,8 @@ class Producto {
   int stock;
   int idCategoria;
   bool esActivo;
+  int? idUsuarioRegistro;
+  int? idUsuarioActualizacion;
 
   Producto(
       {required this.idProducto,

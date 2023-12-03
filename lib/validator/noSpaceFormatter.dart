@@ -6,8 +6,8 @@ class NoSpaceFormatter extends TextInputFormatter {
     TextEditingValue oldValue,
     TextEditingValue newValue,
   ) {
-    if (newValue.text.startsWith(' ')) {
-      final String trimedText = newValue.text.trimLeft();
+    if (newValue.text.contains(' ')) {
+      String trimedText = newValue.text.trimLeft().trimRight();
       return TextEditingValue(
         text: trimedText,
         selection: TextSelection(

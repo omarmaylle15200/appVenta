@@ -5,12 +5,14 @@ PedidoDetalle pedidoDetalleFromJson(String str) =>
 String pedidoDetalleToJson(PedidoDetalle data) => json.encode(data.toJson());
 
 class PedidoDetalle {
-  int idPedido;
-  int idPedidoDetalle;
-  int idProducto;
-  double precio;
-  int cantidad;
-  double subTotal;
+  int? idPedido;
+  int? idPedidoDetalle;
+  int? idProducto;
+  double? precio;
+  int? cantidad;
+  double? subTotal;
+
+  PedidoDetalle.only();
 
   PedidoDetalle(
       {required this.idPedido,
