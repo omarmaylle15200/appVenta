@@ -1,16 +1,22 @@
 import 'dart:convert';
 
+import 'package:appventa/models/pedidoDetalle.dart';
+
 Pedido pedidoFromJson(String str) => Pedido.fromJson(json.decode(str));
 String pedidoToJson(Pedido data) => json.encode(data.toJson());
 
 class Pedido {
-  int idPedido;
-  int idTipoPedido;
-  int idUsuarioRegistro;
-  int idUsuarioActualizacion;
-  DateTime fechaRegistro;
-  DateTime fechaActualizacion;
-  bool esActivo;
+  int? idPedido;
+  int? idTipoPedido;
+  int? idUsuarioRegistro;
+  int? idUsuarioActualizacion;
+  DateTime? fechaRegistro;
+  DateTime? fechaActualizacion;
+  bool? esActivo;
+  double? total;
+  Iterable<PedidoDetalle>? pedidoDetalles;
+
+  Pedido.only();
 
   Pedido(
       {required this.idPedido,
@@ -19,6 +25,7 @@ class Pedido {
       required this.idUsuarioActualizacion,
       required this.fechaRegistro,
       required this.fechaActualizacion,
+      required this.total,
       required this.esActivo});
 
   Map<String, dynamic> toMap() {
@@ -29,6 +36,7 @@ class Pedido {
       'idUsuarioActualizacion': idUsuarioActualizacion,
       'fechaRegistro': fechaRegistro,
       'fechaActualizacion': fechaActualizacion,
+      'total': total,
       'esActivo': esActivo
     };
   }
@@ -43,8 +51,9 @@ class Pedido {
       idTipoPedido: json["idTipoPedido"],
       idUsuarioRegistro: json["idUsuarioRegistro"],
       idUsuarioActualizacion: json["idUsuarioActualizacion"],
-      fechaRegistro: json["fechaRegistro"],
-      fechaActualizacion: json["fechaActualizacion"],
+      fechaRegistro: DateTime.tryParse(json["fechaRegistro"]),
+      fechaActualizacion: DateTime.tryParse(json["fechaActualizacion"]),
+      total: json["total"],
       esActivo: json["esActivo"]);
 
   Map<String, dynamic> toJson() => {
@@ -54,6 +63,7 @@ class Pedido {
         'idUsuarioActualizacion': idUsuarioActualizacion,
         'fechaRegistro': fechaRegistro,
         'fechaActualizacion': fechaActualizacion,
+        'total': total,
         'esActivo': esActivo
       };
 }

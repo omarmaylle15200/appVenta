@@ -39,6 +39,10 @@ class _MyHomePageState extends State<MyHomePage> {
         nombrePage: "Realizar Venta",
         rutaPage: "/ventaNuevo",
         icon: Icons.list_alt));
+    pages.add(Page(
+        nombrePage: "Ventas",
+        rutaPage: "/venta",
+        icon: Icons.list_alt));
   }
 
   @override

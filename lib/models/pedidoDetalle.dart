@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:appventa/models/producto.dart';
+
 PedidoDetalle pedidoDetalleFromJson(String str) =>
     PedidoDetalle.fromJson(json.decode(str));
 String pedidoDetalleToJson(PedidoDetalle data) => json.encode(data.toJson());
@@ -11,6 +13,7 @@ class PedidoDetalle {
   double? precio;
   int? cantidad;
   double? subTotal;
+  Producto? producto;
 
   PedidoDetalle.only();
 

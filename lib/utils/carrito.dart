@@ -22,6 +22,7 @@ class Carrito extends ChangeNotifier {
     pedidoDetalle.cantidad = cantidad;
     pedidoDetalle.precio = producto.precio;
     pedidoDetalle.subTotal = producto.precio * cantidad;
+    pedidoDetalle.producto = producto;
 
     if (items.containsKey(producto.idProducto)) {
       items.update(producto.idProducto, (value) => pedidoDetalle);
@@ -34,24 +35,42 @@ class Carrito extends ChangeNotifier {
     items.remove(idProducto);
   }
 
-  void incrementarItem(int idProducto, int cantidad) {
+  void incrementarItem(int idProducto) {
     if (!items.containsKey(idProducto)) return;
 
-    if (items[idProducto]!.cantidad!>1) {
+    print(items[idProducto]!.idProducto);
+    print(items[idProducto]!.cantidad);
+    print(items[idProducto]!.precio);
+    if (items[idProducto]!.cantidad! >= 1) {
       PedidoDetalle pedidoDetalle = items[idProducto]!;
-      pedidoDetalle.cantidad = cantidad;
-      pedidoDetalle.subTotal = cantidad * pedidoDetalle.precio!;
+      pedidoDetalle.cantidad = pedidoDetalle.cantidad! + 1;
+      pedidoDetalle.subTotal =
+          pedidoDetalle.cantidad! * pedidoDetalle.precio!;
 
       items.update(idProducto, (value) => pedidoDetalle);
-    }else{
+    } else {
       items.remove(idProducto);
     }
   }
 
-  void removerCarrito(){
-    items={};
+  void reducirItem(int idProducto) {
+    if (!items.containsKey(idProducto)) return;
+
+    if (items[idProducto]!.cantidad! > 1) {
+      PedidoDetalle pedidoDetalle = items[idProducto]!;
+      pedidoDetalle.cantidad = pedidoDetalle.cantidad! - 1;
+      pedidoDetalle.subTotal = pedidoDetalle.cantidad! * pedidoDetalle.precio!;
+
+      items.update(idProducto, (value) => pedidoDetalle);
+    } else {
+      items.remove(idProducto);
+    }
   }
-  
+
+  void removerCarrito() {
+    items = {};
+  }
+
   @override
   notifyListeners();
 }

@@ -2,6 +2,7 @@ import 'dart:html';
 
 import 'package:appventa/models/categoria.dart';
 import 'package:appventa/models/producto.dart';
+import 'package:appventa/pages/ventaNuevoDetallePage.dart';
 import 'package:appventa/service/categoriaService.dart';
 import 'package:appventa/service/productoService.dart';
 import 'package:appventa/utils/carrito.dart';
@@ -11,7 +12,7 @@ import 'package:appventa/models/Pedido.dart';
 import 'package:appventa/service/PedidoService.dart';
 import 'package:provider/provider.dart';
 
-GlobalKey<FormularioVentaState> globalKeyFormularioKey = GlobalKey();
+GlobalKey<ListadoProductoState> globalKeyFormularioKey = GlobalKey();
 
 class VentaNuevoPage extends StatefulWidget {
   const VentaNuevoPage({super.key, required this.title});
@@ -73,7 +74,19 @@ class _VentaNuevoPageState extends State<VentaNuevoPage> {
             IconButton(
               icon: const Icon(Icons.shopping_cart_outlined),
               tooltip: 'Cerrar',
-              onPressed: () async {},
+              onPressed: () async {
+                print(carrito.numeroItems());
+                carrito.numeroItems() != 0
+                    ? Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                VentaNuevoDetallePage(title: "Carrito")),
+                      )
+                    : ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(("Agregar un producto"))),
+                      );
+              },
             ),
             Positioned(
               top: 1,
@@ -116,7 +129,7 @@ class _VentaNuevoPageState extends State<VentaNuevoPage> {
             ),
           ),
           Expanded(
-            child: FormularioVenta(key: globalKeyFormularioKey, idCategoria: 0),
+            child: ListadoProducto(key: globalKeyFormularioKey, idCategoria: 0),
           )
         ],
       ),
@@ -154,23 +167,23 @@ class _VentaNuevoPageState extends State<VentaNuevoPage> {
   //         ),
   //       ],
   //     ),
-  //     body: FormularioVenta(key: globalKey, idCategoria: 0),
+  //     body: ListadoProducto(key: globalKey, idCategoria: 0),
   //   );
   // }
 }
 
 // Create a List widget.
-class FormularioVenta extends StatefulWidget {
-  FormularioVenta({super.key, required this.idCategoria});
+class ListadoProducto extends StatefulWidget {
+  ListadoProducto({super.key, required this.idCategoria});
   int? idCategoria;
 
   @override
-  FormularioVentaState createState() {
-    return FormularioVentaState();
+  ListadoProductoState createState() {
+    return ListadoProductoState();
   }
 }
 
-class FormularioVentaState extends State<FormularioVenta> {
+class ListadoProductoState extends State<ListadoProducto> {
   final pedidoService = PedidoService();
   final productoService = ProductoService();
 
@@ -301,12 +314,12 @@ class FormularioVentaState extends State<FormularioVenta> {
 
   _agregarItemCarrito(Producto producto, Carrito carrito) {
     setState(() {
-      carrito.agregarItem(producto, 0);
+      carrito.agregarItem(producto, 1);
       carrito.notifyListeners();
     });
   }
 
-  int _numeroItemCarrito(Carrito carrito) {
-    return carrito.numeroItems();
+  _mostrarSnackBar(SnackBar snackBar) {
+    snackBar;
   }
 }
