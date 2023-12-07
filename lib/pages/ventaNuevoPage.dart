@@ -233,7 +233,7 @@ class ListadoProductoState extends State<ListadoProducto> {
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     childAspectRatio: MediaQuery.of(context).size.width /
-                        (MediaQuery.of(context).size.height / 1.8),
+                        (MediaQuery.of(context).size.height / 1.7),
                     crossAxisSpacing: 30,
                     mainAxisSpacing: 10),
                 itemBuilder: (context, index) {
@@ -280,12 +280,23 @@ class ListadoProductoState extends State<ListadoProducto> {
               ),
             ),
             SizedBox(
-              height: 30,
+              height: 20,
               child: Container(
                 padding: const EdgeInsets.only(top: 0),
                 child: Text(
                   textAlign: TextAlign.center,
                   "Precio: S/ ${producto.precio.toString()}",
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 30,
+              child: Container(
+                padding: const EdgeInsets.only(top: 0),
+                child: Text(
+                  textAlign: TextAlign.center,
+                  "Stock: ${producto.stock.toString()}",
                   style: const TextStyle(fontSize: 16),
                 ),
               ),

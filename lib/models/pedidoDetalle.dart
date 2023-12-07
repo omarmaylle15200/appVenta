@@ -1,11 +1,13 @@
 import 'dart:convert';
 
 import 'package:appventa/models/producto.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 PedidoDetalle pedidoDetalleFromJson(String str) =>
     PedidoDetalle.fromJson(json.decode(str));
 String pedidoDetalleToJson(PedidoDetalle data) => json.encode(data.toJson());
 
+@JsonSerializable()
 class PedidoDetalle {
   int? idPedido;
   int? idPedidoDetalle;

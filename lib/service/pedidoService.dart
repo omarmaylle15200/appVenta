@@ -13,15 +13,16 @@ class PedidoService {
     try {
       var url = Uri.parse("${uriApiVentas}/Pedido/registrar");
 
+      var jsonPedido=jsonEncode(pedido);
       final response = await http.post(url,
           headers: {"Content-Type": "application/json"},
-          body: json.encode(pedido));
+          body: jsonPedido);
+
       if (response.statusCode != 200) {
         return resp;
       }
 
-      var r = jsonDecode(response.body) as int;
-      resp = r == 1 ? true : false;
+      resp = jsonDecode(response.body) as bool;
       
     } catch (error) {
       print(error);

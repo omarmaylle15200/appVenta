@@ -25,7 +25,7 @@ class Carrito extends ChangeNotifier {
     pedidoDetalle.producto = producto;
 
     if (items.containsKey(producto.idProducto)) {
-      items.update(producto.idProducto, (value) => pedidoDetalle);
+      incrementarItem(producto.idProducto);
     } else {
       items.putIfAbsent(producto.idProducto, () => pedidoDetalle);
     }
@@ -41,16 +41,14 @@ class Carrito extends ChangeNotifier {
     print(items[idProducto]!.idProducto);
     print(items[idProducto]!.cantidad);
     print(items[idProducto]!.precio);
-    if (items[idProducto]!.cantidad! >= 1) {
-      PedidoDetalle pedidoDetalle = items[idProducto]!;
-      pedidoDetalle.cantidad = pedidoDetalle.cantidad! + 1;
-      pedidoDetalle.subTotal =
-          pedidoDetalle.cantidad! * pedidoDetalle.precio!;
 
-      items.update(idProducto, (value) => pedidoDetalle);
-    } else {
-      items.remove(idProducto);
-    }
+    PedidoDetalle pedidoDetalle = items[idProducto]!;
+    if(pedidoDetalle.producto?.stock==pedidoDetalle.cantidad) return;
+
+    pedidoDetalle.cantidad = pedidoDetalle.cantidad! + 1;
+    pedidoDetalle.subTotal = pedidoDetalle.cantidad! * pedidoDetalle.precio!;
+
+    items.update(idProducto, (value) => pedidoDetalle);
   }
 
   void reducirItem(int idProducto) {

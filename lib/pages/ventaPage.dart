@@ -52,7 +52,7 @@ class ListaPedidoState extends State<ListaPedido> {
   @override
   void initState() {
     super.initState();
-    _obtenerProductos(1, f.format(fechaInicio), f.format(fechaFinal));
+    _obtenerPedidos(1, f.format(fechaInicio), f.format(fechaFinal));
   }
 
   @override
@@ -60,7 +60,7 @@ class ListaPedidoState extends State<ListaPedido> {
     return _crearListado();
   }
 
-  _obtenerProductos(int idTipoPedido, String fechaInicio, String fechaFinal) {
+  _obtenerPedidos(int idTipoPedido, String fechaInicio, String fechaFinal) {
     setState(() {
       futurePedidos =
           pedidoService.obtenerPedidos(idTipoPedido, fechaInicio, fechaFinal);
@@ -108,7 +108,7 @@ class ListaPedidoState extends State<ListaPedido> {
 
                         setState(() {
                           fechaInicio = newFechaInicio;
-                          _obtenerProductos(
+                          _obtenerPedidos(
                               1, f.format(fechaInicio), f.format(fechaFinal));
                         });
                       },
@@ -137,7 +137,7 @@ class ListaPedidoState extends State<ListaPedido> {
 
                         setState(() {
                           fechaFinal = newFechaFinal;
-                          _obtenerProductos(
+                          _obtenerPedidos(
                               1, f.format(fechaInicio), f.format(fechaFinal));
                         });
                       },

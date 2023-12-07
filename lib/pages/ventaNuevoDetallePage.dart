@@ -18,8 +18,7 @@ class VentaNuevoDetallePage extends StatefulWidget {
 }
 
 class _VentaNuevoDetallePageState extends State<VentaNuevoDetallePage> {
-
-  PedidoService pedidoService=PedidoService();
+  PedidoService pedidoService = PedidoService();
 
   @override
   void initState() {
@@ -80,17 +79,19 @@ class _VentaNuevoDetallePageState extends State<VentaNuevoDetallePage> {
 
             bool resp = false;
 
-            Iterable<PedidoDetalle> pedidoDetalles=carrito.items.values;
-            Pedido pedido=Pedido.only();
-            pedido.pedidoDetalles=pedidoDetalles;
-            pedido.idTipoPedido=1;
-            pedido.idUsuarioRegistro=usuarioSesion.idUsuario;
-            pedido.idUsuarioActualizacion=usuarioSesion.idUsuario;
+            Iterable<PedidoDetalle> pedidoDetalles = carrito.items.values;
+            Pedido pedido = Pedido.only();
+            pedido.pedidoDetalles = pedidoDetalles.toList();
+            pedido.idTipoPedido = 1;
+            pedido.idUsuarioRegistro = usuarioSesion.idUsuario;
+            pedido.idUsuarioActualizacion = usuarioSesion.idUsuario;
 
-            //resp=await pedidoService.registrarPedido(pedido);
             print(pedido.pedidoDetalles);
-            resp=true;
+            resp = true;
+            resp = await pedidoService.registrarPedido(pedido);
+
             if (!resp) {
+              // ignore: use_build_context_synchronously
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('No se pudo registrar')),
               );
@@ -99,7 +100,6 @@ class _VentaNuevoDetallePageState extends State<VentaNuevoDetallePage> {
 
             carrito.removerCarrito();
             Navigator.pushNamedAndRemoveUntil(context, "/home", (r) => false);
-
           },
           backgroundColor: Colors.red,
           child: const Icon(
@@ -177,10 +177,27 @@ class _VentaNuevoDetallePageState extends State<VentaNuevoDetallePage> {
                                           backgroundColor:
                                               MaterialStateProperty.all<Color>(
                                                   Colors.amber.shade500)),
-                                      onPressed: () => _incrementarItemCarrito(
-                                          producto.idProducto!, carrito),
-                                      child: const Icon(
-                                        Icons.add,
+                                      onPressed: () async {
+                                        if (carrito.items[producto.idProducto]!
+                                                .cantidad ==
+                                            1) {
+                                          bool resp =
+                                              await _crearAlertConfirmacionDeleteItem();
+                                          if (!resp) return;
+
+                                          _reducirItemCarrito(
+                                              producto.idProducto!, carrito);
+                                        } else {
+                                          _reducirItemCarrito(
+                                              producto.idProducto!, carrito);
+                                        }
+                                      },
+                                      child: Icon(
+                                        carrito.items[producto.idProducto]!
+                                                    .cantidad ==
+                                                1
+                                            ? Icons.delete
+                                            : Icons.remove,
                                         size: 24.0,
                                       ),
                                     ),
@@ -196,10 +213,19 @@ class _VentaNuevoDetallePageState extends State<VentaNuevoDetallePage> {
                                           backgroundColor:
                                               MaterialStateProperty.all<Color>(
                                                   Colors.amber.shade500)),
-                                      onPressed: () => _reducirItemCarrito(
-                                          producto.idProducto!, carrito),
+                                      onPressed: () async {
+                                        if (carrito.items[producto.idProducto]!
+                                                .cantidad ==
+                                            carrito.items[producto.idProducto]!
+                                                .producto!.stock) {
+                                          _crearAlertConfirmacionStockCompleto();
+                                          return;
+                                        }
+                                        _incrementarItemCarrito(
+                                            producto.idProducto!, carrito);
+                                      },
                                       child: const Icon(
-                                        Icons.remove,
+                                        Icons.add,
                                         size: 24.0,
                                       ),
                                     ),
@@ -264,6 +290,48 @@ class _VentaNuevoDetallePageState extends State<VentaNuevoDetallePage> {
               onPressed: () => Navigator.of(context).pop(false),
               child: const Text("Cancelar"),
             ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<bool> _crearAlertConfirmacionDeleteItem() async {
+    return await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Eliminar"),
+          content: const Text("¿Seguro de remover producto?"),
+          actions: <Widget>[
+            TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+                child: const Text("Confirmar")),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text("Cancelar"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<bool> _crearAlertConfirmacionStockCompleto() async {
+    return await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Stock"),
+          content: const Text("Sin Stock"),
+          actions: <Widget>[
+            TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+                child: const Text("Aceptar")),
           ],
         );
       },

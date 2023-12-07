@@ -14,7 +14,7 @@ class Pedido {
   DateTime? fechaActualizacion;
   bool? esActivo;
   double? total;
-  Iterable<PedidoDetalle>? pedidoDetalles;
+  List<PedidoDetalle>? pedidoDetalles;
 
   Pedido.only();
 
@@ -37,6 +37,7 @@ class Pedido {
       'fechaRegistro': fechaRegistro,
       'fechaActualizacion': fechaActualizacion,
       'total': total,
+      'pedidoDetalles': pedidoDetalles,
       'esActivo': esActivo
     };
   }
@@ -64,6 +65,7 @@ class Pedido {
         'fechaRegistro': fechaRegistro,
         'fechaActualizacion': fechaActualizacion,
         'total': total,
+        'pedidoDetalles': pedidoDetalles,
         'esActivo': esActivo
       };
 }
