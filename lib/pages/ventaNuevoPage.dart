@@ -58,7 +58,7 @@ class _VentaNuevoPageState extends State<VentaNuevoPage> {
 
         return Consumer<Carrito>(
           builder: (context, carrito, child) {
-            return _crearAppBar(categorias!, "Productos", carrito);
+            return _crearAppBar(categorias!, "Productos-Nueva venta", carrito);
           },
         );
       },
